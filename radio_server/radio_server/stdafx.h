@@ -9,7 +9,12 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <winsock.h> // здесь наход¤тс¤ заголовки функций сокетов
+#include <iostream>
+#include <string> 
 
+#pragma comment(lib, "wsock32.lib") // добавл¤ем библиотеку дл¤ функций сокетов
 
+#define SOCKMAXCONN 20
 
 // TODO: Установите здесь ссылки на дополнительные заголовки, требующиеся для программы
