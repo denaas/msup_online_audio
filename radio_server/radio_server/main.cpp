@@ -13,7 +13,7 @@ int main()
 		
 		// Bind the socket to the local IP address and port 8080
 		socket.Bind();
-		socket.Listen(20);
+		socket.Listen(20); 
 
 		while (1) 
 		{
