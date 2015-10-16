@@ -8,6 +8,8 @@
 using std::string;
 using std::endl;
 using std::cout;
+using std::ifstream;
+using std::ios_base;
 
 enum PROTO {TCP, UDP};
 
@@ -50,9 +52,9 @@ class BaseSocket
 public:
 	BaseSocket(PROTO, SOCKET, SocketAddress *);
 	virtual ~BaseSocket();
-	int GetSockDescriptor() { return fd_socket; }
-	std::string Recieve();
-	void Send(std::string);
+	SOCKET GetSockDescriptor() { return fd_socket; }
+	string Recieve();
+	void Send(string);
 protected:
 	SOCKET fd_socket;
 	SocketAddress * base_sock_addr;
@@ -99,14 +101,20 @@ BaseSocket::~BaseSocket()
 	delete base_sock_addr;
 }
 
-void BaseSocket::Send(std::string str)
+void BaseSocket::Send(string str)
 {
-
+	int len = (int) str.length();
+	if (send(fd_socket, str.c_str(), len, 0) == 0)
+		throw string("call socket recieve");
 }
 
-std::string BaseSocket::Recieve()
+string BaseSocket::Recieve() 
 {
-	std::string res;
+	char buf[4096];
+	int len = sizeof(buf);
+	if (recv(fd_socket, buf, len, 0) == SOCKET_ERROR)
+		throw string("call socket recieve");
+	string res(buf);
 	return res;
 }
 
@@ -145,10 +153,15 @@ void ServerSocket::Listen(int back_log)
 		throw string("call listen");
 }
 
+void ExecMethodGet(BaseSocket *pConn, string recvmsg) 
+{
+	string res = "";
+	pConn->Send(res);
+}
+
 void ServerSocket::OnAccept(BaseSocket* pConn)
 {
-	cout << "Allo!" << endl;
-	/* processing request */
+	cout << "Get request!" << endl;
 	shutdown(pConn->GetSockDescriptor(), 2);
 	closesocket(pConn->GetSockDescriptor());
 }
