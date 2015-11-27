@@ -1,4 +1,4 @@
-#include "header/serv.h"
+#include "serv.h"
 
 int main()
 {
@@ -15,7 +15,7 @@ int main()
 		socket.Bind();
 		socket.Listen(20); 
 
-		while (1) 
+		while (true) 
 		{
 			BaseSocket * feedback_socket = socket.Accept(TCP); // Creating a new socket for feedback
 			socket.OnAccept(feedback_socket); // Answer on request
@@ -29,5 +29,6 @@ int main()
 	catch (string s)
 	{
 		cout << "Error: " << s << endl;
+		exit(EXIT_FAILURE);
 	}
 }

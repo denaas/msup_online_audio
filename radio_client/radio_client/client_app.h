@@ -1,4 +1,5 @@
 #pragma once
+#include "client_interface.h"
 
 namespace radio_client {
 
@@ -110,6 +111,7 @@ namespace radio_client {
 			this->button1->TabIndex = 4;
 			this->button1->Text = L"Sign in";
 			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &client_app::button1_Click);
 			// 
 			// button2
 			// 
@@ -139,5 +141,12 @@ namespace radio_client {
 
 		}
 #pragma endregion
-	};
+	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
+	{
+		client_interface^ form = gcnew client_interface;
+		this->Hide();
+		form->Show();
+
+	}
+};
 }

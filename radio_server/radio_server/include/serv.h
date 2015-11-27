@@ -5,6 +5,10 @@
 #include <fstream>
 #include <winsock2.h> 
 
+#pragma comment(lib, "ws2_32.lib")
+
+#define BUF_LEN 1024
+
 using std::string;
 using std::endl;
 using std::cout;
@@ -12,8 +16,6 @@ using std::ifstream;
 using std::ios_base;
 
 enum PROTO {TCP, UDP};
-
-#pragma comment(lib, "ws2_32.lib")
 
 const short int LISTEN_PORT = 8080;
 
@@ -74,7 +76,8 @@ public:
 BaseSocket::BaseSocket(PROTO prot, SOCKET fd = INVALID_SOCKET, SocketAddress * ptr_addr = NULL) 
 	: fd_socket(fd), base_sock_addr(ptr_addr)
 {
-	if (fd == INVALID_SOCKET && ptr_addr == NULL) {
+	if (fd == INVALID_SOCKET && ptr_addr == NULL) 
+	{
 		SOCKET Result;
 		base_sock_addr = new SocketAddress;
 		switch (prot)
@@ -110,7 +113,7 @@ void BaseSocket::Send(string str)
 
 string BaseSocket::Recieve() 
 {
-	char buf[4096];
+	char buf[BUF_LEN];
 	int len = sizeof(buf);
 	if (recv(fd_socket, buf, len, 0) == SOCKET_ERROR)
 		throw string("call socket recieve");
