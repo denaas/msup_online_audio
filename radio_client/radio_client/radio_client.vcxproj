@@ -149,6 +149,7 @@
     <ClInclude Include="client_interface.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="include\bass.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="client_app.resx">
@@ -157,6 +158,12 @@
     <EmbeddedResource Include="client_interface.resx">
       <DependentUpon>client_interface.h</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\bass.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\bass.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
