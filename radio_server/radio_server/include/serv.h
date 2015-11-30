@@ -111,13 +111,16 @@ void BaseSocket::Send(string str)
 		throw string("call socket recieve");
 }
 
-string BaseSocket::Recieve() 
+string BaseSocket::Recieve()
 {
 	char buf[BUF_LEN];
 	int len = sizeof(buf);
-	if (recv(fd_socket, buf, len, 0) == SOCKET_ERROR)
+	int recv_len = 0; string res = "";
+	if ((recv_len = recv(fd_socket, buf, len, 0)) == SOCKET_ERROR)
 		throw string("call socket recieve");
-	string res(buf);
+	for (int i = 0; i < recv_len; ++i)
+		res += buf[i];
+	
 	return res;
 }
 

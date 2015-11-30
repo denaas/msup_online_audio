@@ -14,6 +14,7 @@ SocketAddress::SocketAddress()
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = INADDR_ANY;
 	sin.sin_port = htons(LISTEN_PORT);
+	inet_pton(AF_INET, "127.0.0.1", &sin.sin_addr);
 }
 
 BaseSocket::BaseSocket(PROTO prot, SOCKET fd = INVALID_SOCKET, SocketAddress * ptr_addr = NULL)

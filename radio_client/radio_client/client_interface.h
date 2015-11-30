@@ -48,6 +48,7 @@ namespace radio_client {
 	protected:
 	private: System::Windows::Forms::Button^  button2;
 
+
 	private:
 		/// <summary>
 		/// Required designer variable.
@@ -96,10 +97,7 @@ namespace radio_client {
 			this->Name = L"client_interface";
 			this->Text = L"client_interface";
 			this->ResumeLayout(false);
-			//
-			// BASS Initialization
-			//
-			BASS_Init(-1, 22050, BASS_DEVICE_3D, 0, NULL);
+
 		}
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
