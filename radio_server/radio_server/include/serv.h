@@ -166,7 +166,7 @@ void ServerSocket::OnAccept(BaseSocket* pConn)
 	cout << str << endl;
 	if (str.length())
 	{
-
+		//pConn->Send(text);
 	}
 	shutdown(pConn->GetSockDescriptor(), 2);
 	closesocket(pConn->GetSockDescriptor());
