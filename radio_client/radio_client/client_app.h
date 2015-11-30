@@ -1,6 +1,8 @@
 #pragma once
 #include "client_interface.h"
 
+using namespace System::Windows::Forms;
+
 namespace radio_client {
 
 	using namespace System;
@@ -143,10 +145,21 @@ namespace radio_client {
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		client_interface^ form = gcnew client_interface;
-		this->Hide();
-		form->Show();
+		ClientSocket sock(TCP);
+		sock.Connect();
 
+		System::String^ managed_str1 = textBox1->Text;
+		std::string unmanaged_str1 = msclr::interop::marshal_as<std::string>(managed_str1);
+		System::String^ managed_str2 = textBox2->Text;
+		std::string unmanaged_str2 = msclr::interop::marshal_as<std::string>(managed_str2);
+
+		std::string msg = unmanaged_str1 + "/" + unmanaged_str2;
+		sock.Send(msg);
+
+		//client_interface^ form = gcnew client_interface;
+		//this->Hide();
+		//form->Show();
 	}
 };
 }
+

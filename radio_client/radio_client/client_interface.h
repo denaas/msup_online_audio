@@ -1,8 +1,12 @@
 #pragma once
 
-#include <windows.h>
 #include <conio.h>
+#include <winsock2.h> 
 #include "bass.h"
+#include "client.h"
+#include <msclr\marshal_cppstd.h>
+
+
 #pragma comment(lib, "bass.lib")
 
 static HSTREAM stream;
@@ -100,6 +104,7 @@ namespace radio_client {
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
+		/*
 		char filename[] = "1.mp3";
 
 		stream = BASS_StreamCreateFile(FALSE, filename, 0, 0, 0);
@@ -116,13 +121,35 @@ namespace radio_client {
 		{
 			Sleep(200);
 		}
+		*/
+
+		//char url[] = "http://127.0.0.1:8080";
+
+		/* Create stream, binding with url */
+		/*stream = BASS_StreamCreateURL(url, 0, 0, NULL, 0);
+		if (!stream) 
+		{
+			MessageBox::Show("BASS_StreamCreateURL() is failed.", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
+		}*/
+
+		/* Play sound */
+		/*BASS_ChannelPlay(stream, FALSE);
+
+		while (!kbhit()) Sleep(200);
+
+		BASS_ChannelStop(stream);
+
+		BASS_StreamFree(stream);
+		*/
+		
 		
 	}
 	
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		BASS_ChannelStop(stream);
-		BASS_StreamFree(stream);
+		//BASS_ChannelStop(stream);
+		//BASS_StreamFree(stream);
 	}
 };
 }

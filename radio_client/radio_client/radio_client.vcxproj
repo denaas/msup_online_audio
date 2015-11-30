@@ -139,6 +139,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="client.cpp" />
     <ClCompile Include="client_app.cpp" />
     <ClCompile Include="client_interface.cpp" />
   </ItemGroup>
@@ -150,6 +151,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="include\bass.h" />
+    <ClInclude Include="include\client.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="client_app.resx">

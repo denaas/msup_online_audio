@@ -24,7 +24,7 @@ void InitializationWSA(WSADATA & wsaData) {
 	{
 		cout << "WSAStartup() failed: " << GetLastError() << endl;
 		WSACleanup();
-		exit(1);
+		exit(EXIT_FAILURE);
 	}	
 }
 
@@ -156,15 +156,15 @@ void ServerSocket::Listen(int back_log)
 		throw string("call listen");
 }
 
-void ExecMethodGet(BaseSocket *pConn, string recvmsg) 
-{
-	string res = "";
-	pConn->Send(res);
-}
-
 void ServerSocket::OnAccept(BaseSocket* pConn)
 {
 	cout << "Get request!" << endl;
+	string str = pConn->Recieve();
+	cout << str << endl;
+	if (str.length())
+	{
+
+	}
 	shutdown(pConn->GetSockDescriptor(), 2);
 	closesocket(pConn->GetSockDescriptor());
 }
