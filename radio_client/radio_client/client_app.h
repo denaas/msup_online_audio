@@ -1,6 +1,7 @@
 #pragma once
 #include "client_interface.h"
 
+
 using namespace System::Windows::Forms;
 
 namespace radio_client {
@@ -169,10 +170,9 @@ namespace radio_client {
 		sock.Send(msg);
 
 		string recv_msg = sock.Recieve();
+		String ^ recv_msg_sys = gcnew String(recv_msg.c_str());
 
-		//Decrypt
-
-		//label3->Text = ...;
+		label3->Text = recv_msg_sys;
 
 		//client_interface^ form = gcnew client_interface;
 		//this->Hide();
