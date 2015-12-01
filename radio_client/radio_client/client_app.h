@@ -1,7 +1,9 @@
 #pragma once
 #include "client_interface.h"
+#include <iostream>
 
 using namespace System::Windows::Forms;
+using namespace std;
 
 namespace radio_client {
 
@@ -169,9 +171,21 @@ namespace radio_client {
 		sock.Send(msg);
 
 		string recv_msg = sock.Recieve();
-
-		//Decrypt
-
+		
+		//HANDLE hOutFile; //выходной шифртекст
+		//char* file_name = "recieved_message.txt";
+		//hOutFile = CreateFile(LPCTSTR(file_name), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
+		//DWORD tmp = 0;
+		//BYTE* buf;
+		//for (int i = 0; i < recv_msg.length(); i++) {
+			//buf[i] = recv_msg[i];
+		//}
+		//WriteFile(hOutFile, buf, recv_msg.length(), &tmp, NULL);
+		//CloseHandle(hOutFile);
+		//ofstream fout;
+		//fout.open("recieved_msg.txt");
+		//fout << recv_msg;
+		//fout.close();
 		//label3->Text = ...;
 
 		//client_interface^ form = gcnew client_interface;
