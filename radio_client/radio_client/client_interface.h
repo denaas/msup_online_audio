@@ -2,12 +2,12 @@
 
 #include <windows.h>
 #include <conio.h>
-#include "bass.h"
+//#include "bass.h"
 #pragma comment(lib, "bass.lib")
 
 static HSTREAM stream;
 
-namespace radio_client {
+namespace radio_client { 
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
