@@ -65,13 +65,16 @@ void BaseSocket::Send(string str)
 string BaseSocket::Recieve()
 {
 	char buf[BUF_LEN];
-	int len = sizeof(buf);
-	if (recv(fd_socket, buf, len, 0) == SOCKET_ERROR)
+	string res = "";
+	unsigned int len = sizeof(buf);
+	unsigned int recv_len = 0;
+	if ((recv_len = recv(fd_socket, buf, len, 0)) == SOCKET_ERROR)
 	{
 		MessageBox::Show("Call socket recieve", "Error", MessageBoxButtons::OK);
 		exit(EXIT_FAILURE);
 	}
-	string res(buf);
+	for (unsigned int i = 0; i < recv_len; ++i)
+		res += buf[i];
 	return res;
 }
 

@@ -117,19 +117,19 @@ void BaseSocket::Send(string str)
 {
 	int len = (int) str.length();
 	if (send(fd_socket, str.c_str(), len, 0) == 0)
-		throw string("call socket recieve");
+		throw string("Call socket send");
 }
 
 string BaseSocket::Recieve()
 {
 	char buf[BUF_LEN];
-	int len = sizeof(buf);
-	int recv_len = 0; string res = "";
+	string res = "";
+	unsigned int len = sizeof(buf);
+	unsigned int recv_len = 0; 
 	if ((recv_len = recv(fd_socket, buf, len, 0)) == SOCKET_ERROR)
 		throw string("call socket recieve");
-	for (int i = 0; i < recv_len; ++i)
+	for (unsigned int i = 0; i < recv_len; ++i)
 		res += buf[i];
-	
 	return res;
 }
 
@@ -182,51 +182,6 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 	if (str.length())
 	{
 		//pConn->Send(text);
-		//LPCTSTR key_container_name;
-		//if (!CryptAcquireContext(&hProv, key_container_name, MS_DEF_PROV, PROV_RSA_FULL, CRYPT_NEWKEYSET)) throw 1;
-		HCRYPTHASH hHash = NULL;
-		char* password_sample = "12345";
-		if (CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash)) {
-			cout << "A hash object has been created" << endl;
-		}
-		else cout << "Error create hash" << endl;
-		if (CryptHashData(hHash, (BYTE*)password_sample, (DWORD)strlen(password_sample), 0)) {
-			cout << "The password has been added to the hash" << endl;
-		}
-		else cout << "Error password hash" << endl;
-
-		HCRYPTKEY hKey;
-		//генерируем сессионный ключ для RC4 - потокового шифрования
-		if (CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey)) {
-			cout << "KeyCreated" << endl;
-		}
-		
-		FILE *f, *file_result;
-		fopen_s(&f, "in.txt", "rb");
-		fopen_s(&file_result, "fout.txt", "wb");
-		fseek(f, 0, SEEK_END);
-		int fsize1 = (int)ftell(f);
-		DWORD tmp;
-		rewind(f);
-		int sended1 = 0;
-		int readed1 = 0;
-		BYTE buf[BUFFER_SIZE];
-		do {
-			readed1 = fread(buf, 1, BUFFER_SIZE, f);
-			//cout << buf << endl;
-			cout << "Readed = " << readed1 << endl;
-			tmp = readed1;
-			if (!CryptEncrypt(hKey, 0, readed1 <= BUFFER_SIZE, 0, buf, &tmp, BUFFER_SIZE)) cout << "ErrorEncrypt" << endl;
-			//cout << buf << endl;
-			//cout << (DWORD WINAPI)GetLastError() << endl;
-			//string str_send;
-			//for (int i = 0; i < readed1; i++) str_send[i] = buf[i];
-			//pConn->Send(str_send);
-			fwrite(buf, sizeof(BYTE), (size_t)readed1, file_result);
-		} while (readed1 < fsize1);
-		fclose(f);
-		fclose(file_result);
-		if (!CryptDestroyKey(hKey)) cout << "ERROR DESTROYING KEY" << endl;
 	}
 	shutdown(pConn->GetSockDescriptor(), 2);
 	closesocket(pConn->GetSockDescriptor());
