@@ -1,6 +1,9 @@
 #pragma once
 #include "client_interface.h"
 
+
+using namespace System::Windows::Forms;
+
 namespace radio_client {
 
 	using namespace System;
@@ -42,6 +45,7 @@ namespace radio_client {
 	private: System::Windows::Forms::Label^  label2;
 	private: System::Windows::Forms::Button^  button1;
 	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Label^  label3;
 
 	protected:
 
@@ -65,6 +69,7 @@ namespace radio_client {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
 			// textBox1
@@ -122,11 +127,21 @@ namespace radio_client {
 			this->button2->Text = L"Sign up";
 			this->button2->UseVisualStyleBackColor = true;
 			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(12, 214);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(51, 20);
+			this->label3->TabIndex = 6;
+			this->label3->Text = L"label3";
+			// 
 			// client_app
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(339, 202);
+			this->ClientSize = System::Drawing::Size(339, 268);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->label2);
@@ -143,10 +158,26 @@ namespace radio_client {
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		client_interface^ form = gcnew client_interface;
-		this->Hide();
-		form->Show();
+		ClientSocket sock(TCP);
+		sock.Connect();
 
+		System::String^ managed_str1 = textBox1->Text;
+		std::string unmanaged_str1 = msclr::interop::marshal_as<std::string>(managed_str1);
+		System::String^ managed_str2 = textBox2->Text;
+		std::string unmanaged_str2 = msclr::interop::marshal_as<std::string>(managed_str2);
+
+		std::string msg = unmanaged_str1 + "/" + unmanaged_str2;
+		sock.Send(msg);
+
+		string recv_msg = sock.Recieve();
+		String ^ recv_msg_sys = gcnew String(recv_msg.c_str());
+
+		label3->Text = recv_msg_sys;
+
+		//client_interface^ form = gcnew client_interface;
+		//this->Hide();
+		//form->Show();
 	}
 };
 }
+

@@ -1,13 +1,17 @@
 #pragma once
 
-#include <windows.h>
 #include <conio.h>
-//#include "bass.h"
+#include <winsock2.h> 
+#include "bass.h"
+#include "client.h"
+#include <msclr\marshal_cppstd.h>
+
+
 #pragma comment(lib, "bass.lib")
 
 static HSTREAM stream;
 
-namespace radio_client { 
+namespace radio_client {
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -43,6 +47,7 @@ namespace radio_client {
 	private: System::Windows::Forms::Button^  button1;
 	protected:
 	private: System::Windows::Forms::Button^  button2;
+
 
 	private:
 		/// <summary>
@@ -92,14 +97,12 @@ namespace radio_client {
 			this->Name = L"client_interface";
 			this->Text = L"client_interface";
 			this->ResumeLayout(false);
-			//
-			// BASS Initialization
-			//
-			BASS_Init(-1, 22050, BASS_DEVICE_3D, 0, NULL);
+
 		}
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
+		/*
 		char filename[] = "1.mp3";
 
 		stream = BASS_StreamCreateFile(FALSE, filename, 0, 0, 0);
@@ -116,13 +119,35 @@ namespace radio_client {
 		{
 			Sleep(200);
 		}
+		*/
+
+		//char url[] = "http://127.0.0.1:8080";
+
+		/* Create stream, binding with url */
+		/*stream = BASS_StreamCreateURL(url, 0, 0, NULL, 0);
+		if (!stream) 
+		{
+			MessageBox::Show("BASS_StreamCreateURL() is failed.", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
+		}*/
+
+		/* Play sound */
+		/*BASS_ChannelPlay(stream, FALSE);
+
+		while (!kbhit()) Sleep(200);
+
+		BASS_ChannelStop(stream);
+
+		BASS_StreamFree(stream);
+		*/
+		
 		
 	}
 	
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		BASS_ChannelStop(stream);
-		BASS_StreamFree(stream);
+		//BASS_ChannelStop(stream);
+		//BASS_StreamFree(stream);
 	}
 };
 }

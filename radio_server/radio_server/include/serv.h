@@ -24,7 +24,7 @@ void InitializationWSA(WSADATA & wsaData) {
 	{
 		cout << "WSAStartup() failed: " << GetLastError() << endl;
 		WSACleanup();
-		exit(1);
+		exit(EXIT_FAILURE);
 	}	
 }
 
@@ -108,16 +108,19 @@ void BaseSocket::Send(string str)
 {
 	int len = (int) str.length();
 	if (send(fd_socket, str.c_str(), len, 0) == 0)
-		throw string("call socket recieve");
+		throw string("Call socket send");
 }
 
-string BaseSocket::Recieve() 
+string BaseSocket::Recieve()
 {
 	char buf[BUF_LEN];
-	int len = sizeof(buf);
-	if (recv(fd_socket, buf, len, 0) == SOCKET_ERROR)
+	string res = "";
+	unsigned int len = sizeof(buf);
+	unsigned int recv_len = 0; 
+	if ((recv_len = recv(fd_socket, buf, len, 0)) == SOCKET_ERROR)
 		throw string("call socket recieve");
-	string res(buf);
+	for (unsigned int i = 0; i < recv_len; ++i)
+		res += buf[i];
 	return res;
 }
 
@@ -156,15 +159,22 @@ void ServerSocket::Listen(int back_log)
 		throw string("call listen");
 }
 
-void ExecMethodGet(BaseSocket *pConn, string recvmsg) 
-{
-	string res = "";
-	pConn->Send(res);
-}
-
 void ServerSocket::OnAccept(BaseSocket* pConn)
 {
 	cout << "Get request!" << endl;
+	string str = pConn->Recieve();
+	cout << str << endl;
+	if (str.length())
+	{
+		string text;
+		ifstream file;
+		file.open("1.txt");
+		if (!file.is_open()) std::cout << "File is not opened" << std::endl;
+		getline(file, text, '\0');
+		file.close();
+		std::cout << text << std::endl;
+		pConn->Send(text);
+	}
 	shutdown(pConn->GetSockDescriptor(), 2);
 	closesocket(pConn->GetSockDescriptor());
 }
