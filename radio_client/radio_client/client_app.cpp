@@ -5,6 +5,7 @@
 #include "WinDef.h"
 #include "wincrypt.h"
 
+
 #define BUFFER_SIZE 128
 using namespace std;
 

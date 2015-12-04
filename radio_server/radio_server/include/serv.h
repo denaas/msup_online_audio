@@ -8,15 +8,17 @@
 #include "windows.h"
 #include "WinDef.h"
 #include "wincrypt.h"
-#include "md5.cpp"
-#include "identification.cpp"
+
+//#include "md5.cpp"
+//#include "identification.cpp"
 
 #define BUFFER_SIZE 128
-using namespace std;
 
 #pragma comment(lib, "ws2_32.lib")
 
 #define BUF_LEN 1024
+#define BITRATE 256
+const long stream_pack_length = BITRATE * 1024;
 
 using std::string;
 using std::endl;
@@ -78,7 +80,7 @@ public:
 	BaseSocket* Accept(PROTO);
 	void Bind();
 	void Listen(int);
-	void OnAccept(BaseSocket*, HCRYPTPROV );
+	void OnAccept(BaseSocket *, HCRYPTPROV);
 };
 
 /* class BaseSocket */
@@ -170,19 +172,47 @@ void ServerSocket::Listen(int back_log)
 
 void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 {
-	cout << "Get request!" << endl;
+	cout << "Get request:";
 	string str = pConn->Recieve();
 	cout << str << endl;
-	
-	identification first_pair;
-	first_pair.login = md5(str);
-	first_pair.password = md5("password2");
-	first_pair.registration();
 
-	if (str.length())
+	/*
+	* Creating a new secure connection
+	*/
+
+
+	/*
+	* Authentification procedure
+	*/
+
+	//identification first_pair;
+	//first_pair.login = md5(str);
+	//first_pair.password = md5("password2");
+	//first_pair.registration();
+
+	/*
+	 * Sending audio
+	 */
+	ifstream in_audio_file("contents/3.wav", std::ios::binary);
+
+	if (!in_audio_file.is_open())
 	{
-		//pConn->Send(text);
+		cout << "Error: Input Audio is not opened." << endl;
+		system("pause");
+		exit(-1);
 	}
-	shutdown(pConn->GetSockDescriptor(), 2);
-	closesocket(pConn->GetSockDescriptor());
+
+	std::string buffer;
+	char ch;
+
+	while (!in_audio_file.eof())
+	{
+		buffer = "";
+		for (int i = 0; i < stream_pack_length; ++i)
+		{
+			in_audio_file.get(ch);
+			buffer += ch;
+		}
+		pConn->Send(buffer);
+	}
 }

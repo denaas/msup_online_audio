@@ -6,7 +6,6 @@
 #include "client.h"
 #include <msclr\marshal_cppstd.h>
 
-
 #pragma comment(lib, "bass.lib")
 
 static HSTREAM stream;
@@ -47,13 +46,15 @@ namespace radio_client {
 	private: System::Windows::Forms::Button^  button1;
 	protected:
 	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Timer^  timer1;
+	private: System::ComponentModel::IContainer^  components;
 
 
 	private:
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		System::ComponentModel::Container ^components;
+
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -62,28 +63,30 @@ namespace radio_client {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			this->components = (gcnew System::ComponentModel::Container());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->SuspendLayout();
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(28, 54);
+			this->button1->Location = System::Drawing::Point(12, 12);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(124, 45);
 			this->button1->TabIndex = 0;
-			this->button1->Text = L"button1";
+			this->button1->Text = L"Play";
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &client_interface::button1_Click);
 			this->button1->StyleChanged += gcnew System::EventHandler(this, &client_interface::button1_Click);
 			// 
 			// button2
 			// 
-			this->button2->Location = System::Drawing::Point(218, 54);
+			this->button2->Location = System::Drawing::Point(155, 12);
 			this->button2->Name = L"button2";
 			this->button2->Size = System::Drawing::Size(130, 45);
 			this->button2->TabIndex = 1;
-			this->button2->Text = L"button2";
+			this->button2->Text = L"Sign out";
 			this->button2->UseVisualStyleBackColor = true;
 			this->button2->Click += gcnew System::EventHandler(this, &client_interface::button2_Click);
 			// 
@@ -91,7 +94,7 @@ namespace radio_client {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(386, 178);
+			this->ClientSize = System::Drawing::Size(442, 326);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
 			this->Name = L"client_interface";
@@ -102,52 +105,29 @@ namespace radio_client {
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		/*
-		char filename[] = "1.mp3";
-
-		stream = BASS_StreamCreateFile(FALSE, filename, 0, 0, 0);
-
-		if (!stream) 
+		ClientSocket sock(TCP);
+		sock.Connect();
+		sock.Send("give me some music");
+		
+		stream = BASS_StreamCreate(44100, 2, 0, STREAMPROC_PUSH, NULL);
+		if (!stream)
 		{
-			MessageBox::Show("BASS_StreamCreateFile() is failed.", "Error", MessageBoxButtons::OK);
-			exit(-1);
+			MessageBox::Show("BASS_StreamCreate() is failed.", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
 		}
 
 		BASS_ChannelPlay(stream, FALSE);
-
-		while (BASS_ChannelIsActive(stream) != BASS_ACTIVE_STOPPED)
+		while (BASS_ChannelIsActive(stream) == BASS_ACTIVE_STALLED || BASS_ChannelIsActive(stream) == BASS_ACTIVE_PLAYING)
 		{
-			Sleep(200);
+			string buffer = sock.Recieve();
+			BASS_StreamPutData(stream, (void *) buffer.c_str(), (DWORD) buffer.length());
 		}
-		*/
-
-		//char url[] = "http://127.0.0.1:8080";
-
-		/* Create stream, binding with url */
-		/*stream = BASS_StreamCreateURL(url, 0, 0, NULL, 0);
-		if (!stream) 
-		{
-			MessageBox::Show("BASS_StreamCreateURL() is failed.", "Error", MessageBoxButtons::OK);
-			exit(EXIT_FAILURE);
-		}*/
-
-		/* Play sound */
-		/*BASS_ChannelPlay(stream, FALSE);
-
-		while (!kbhit()) Sleep(200);
-
-		BASS_ChannelStop(stream);
-
-		BASS_StreamFree(stream);
-		*/
-		
-		
 	}
 	
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		//BASS_ChannelStop(stream);
-		//BASS_StreamFree(stream);
+		BASS_ChannelStop(stream);
+		BASS_StreamFree(stream);
 	}
 };
 }

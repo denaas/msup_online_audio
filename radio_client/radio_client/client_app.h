@@ -160,9 +160,7 @@ namespace radio_client {
 #pragma endregion
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		ClientSocket sock(TCP);
-		sock.Connect();
-
+		/*
 		System::String^ managed_str1 = textBox1->Text;
 		std::string unmanaged_str1 = msclr::interop::marshal_as<std::string>(managed_str1);
 		System::String^ managed_str2 = textBox2->Text;
@@ -173,14 +171,20 @@ namespace radio_client {
 
 		string recv_msg = sock.Recieve();
 		String ^ recv_msg_sys = gcnew String(recv_msg.c_str());
-
+		*/
 		//Decrypt
 
 		//label3->Text = ...;
 
-		//client_interface^ form = gcnew client_interface;
-		//this->Hide();
-		//form->Show();
+		if (!BASS_Init(-1, 44100, BASS_DEVICE_3D, 0, NULL))
+		{
+			MessageBox::Show("BASS_Init() is failed.", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
+		}
+
+		client_interface^ form = gcnew client_interface;
+		this->Hide();
+		form->Show();
 	}
 };
 }
