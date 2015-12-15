@@ -64,6 +64,7 @@ namespace radio_client {
 		void InitializeComponent(void)
 		{
 			this->components = (gcnew System::ComponentModel::Container());
+			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(client_interface::typeid));
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
@@ -71,34 +72,38 @@ namespace radio_client {
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(12, 12);
+			this->button1->Location = System::Drawing::Point(50, 40);
+			this->button1->Margin = System::Windows::Forms::Padding(2);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(124, 45);
+			this->button1->Size = System::Drawing::Size(83, 29);
 			this->button1->TabIndex = 0;
-			this->button1->Text = L"Play";
+			this->button1->Text = L"Play/Stop";
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &client_interface::button1_Click);
 			this->button1->StyleChanged += gcnew System::EventHandler(this, &client_interface::button1_Click);
 			// 
 			// button2
 			// 
-			this->button2->Location = System::Drawing::Point(155, 12);
+			this->button2->Location = System::Drawing::Point(153, 40);
+			this->button2->Margin = System::Windows::Forms::Padding(2);
 			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(130, 45);
+			this->button2->Size = System::Drawing::Size(87, 29);
 			this->button2->TabIndex = 1;
-			this->button2->Text = L"Sign out";
+			this->button2->Text = L"Next";
 			this->button2->UseVisualStyleBackColor = true;
 			this->button2->Click += gcnew System::EventHandler(this, &client_interface::button2_Click);
 			// 
 			// client_interface
 			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
+			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(442, 326);
+			this->ClientSize = System::Drawing::Size(289, 121);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
+			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
+			this->Margin = System::Windows::Forms::Padding(2);
 			this->Name = L"client_interface";
-			this->Text = L"client_interface";
+			this->Text = L"Music Online";
 			this->ResumeLayout(false);
 
 		}
