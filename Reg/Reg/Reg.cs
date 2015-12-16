@@ -16,5 +16,10 @@ namespace Reg
         {
             InitializeComponent();
         }
+
+        private void OK_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
