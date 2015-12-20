@@ -6,6 +6,11 @@
 #include "client.h"
 #include <msclr\marshal_cppstd.h>
 
+#include "windows.h"
+#include "WinDef.h"
+#include "wincrypt.h"
+#include <iostream>
+
 #pragma comment(lib, "bass.lib")
 
 static HSTREAM stream;
@@ -114,6 +119,22 @@ namespace radio_client {
 		sock.Connect();
 		sock.Send("give me some music");
 		
+		//Initializing CSP
+		HCRYPTPROV hProv;
+		CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, 0);
+		
+		//key generation
+		HCRYPTHASH hHash = NULL;
+		char* password_sample = "12345";
+		if (!CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash))
+			cout << "Error: create hash" << endl;
+		if (!CryptHashData(hHash, (BYTE*)password_sample, (DWORD)strlen(password_sample), 0))
+			cout << "Error: password hash" << endl;
+		HCRYPTKEY hKey;
+		if (!CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey))
+			cout << "Error: key create" << endl;
+		//end of key generation
+
 		stream = BASS_StreamCreate(44100, 2, 0, STREAMPROC_PUSH, NULL);
 		if (!stream)
 		{
@@ -125,8 +146,24 @@ namespace radio_client {
 		while (BASS_ChannelIsActive(stream) == BASS_ACTIVE_STALLED || BASS_ChannelIsActive(stream) == BASS_ACTIVE_PLAYING)
 		{
 			string buffer = sock.Recieve();
-			BASS_StreamPutData(stream, (void *) buffer.c_str(), (DWORD) buffer.length());
+			char *cstr = new char[buffer.length()];
+			for (int i = 0; i < buffer.length(); ++i) {
+				cstr[i] = buffer[i];
+			}
+
+			DWORD tmp = buffer.length();
+			if (!CryptDecrypt(hKey, 0, tmp <= buffer.length(), 0, (BYTE *)cstr, &tmp))
+				cout << "ErrorDecrypt" << endl;
+
+			BASS_StreamPutData(stream, (void *)cstr, (DWORD)buffer.length());
+
+			delete[] cstr;
 		}
+
+		//Closing CSP
+		CryptDestroyKey(hKey);
+		if (hHash) CryptDestroyHash(hHash);
+		CryptReleaseContext(hProv, 0);
 	}
 	
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 

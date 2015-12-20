@@ -12,8 +12,6 @@
 //#include "md5.cpp"
 //#include "identification.cpp"
 
-#define BUFFER_SIZE 128
-
 #pragma comment(lib, "ws2_32.lib")
 
 #define BUF_LEN 1024
@@ -179,7 +177,17 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 	/*
 	* Creating a new secure connection
 	*/
-
+	//key generation
+	HCRYPTHASH hHash = NULL;
+	char* password_sample = "12345";
+	if (!CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash))
+		throw string("CreateHash");
+	if (!CryptHashData(hHash, (BYTE*)password_sample, (DWORD)strlen(password_sample), 0))
+		throw string("CryptHashData");
+	HCRYPTKEY hKey;
+	if (!CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey))
+		throw string("DeriveKey");
+	//end of key generation
 
 	/*
 	* Authentification procedure
@@ -202,8 +210,9 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 		exit(-1);
 	}
 
-	std::string buffer;
+	string buffer;
 	char ch;
+	DWORD tmp = 0;
 
 	while (!in_audio_file.eof())
 	{
@@ -213,6 +222,23 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 			in_audio_file.get(ch);
 			buffer += ch;
 		}
-		pConn->Send(buffer);
+		char cstr[stream_pack_length];
+		for (int i = 0; i < stream_pack_length; ++i) {
+			cstr[i] = buffer[i];
+		}
+
+		tmp = stream_pack_length;
+		if (!CryptEncrypt(hKey, 0, tmp <= stream_pack_length, 0, (BYTE *)cstr, &tmp, stream_pack_length))
+			throw string("ErrorEncrypt"); 
+
+		string resstr = "";
+		for (int i = 0; i < stream_pack_length; ++i) {
+			resstr += cstr[i];
+		}
+
+		pConn->Send(resstr);
 	}
+
+	CryptDestroyKey(hKey);
+	if (hHash) CryptDestroyHash(hHash);
 }

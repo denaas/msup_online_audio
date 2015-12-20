@@ -19,9 +19,8 @@ int main()
 
 		//Initializing CSP
 		HCRYPTPROV hProv;
-
-		//Подключаемся к криптопровайдеру типа PROV_RSA_FULL
-		if (!CryptAcquireContext(&hProv, NULL, MS_DEF_PROV, PROV_RSA_FULL, 0)) throw 1;
+		if (!CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, 0)) 
+			throw string("AcquireContext");
 
 		while (true) 
 		{

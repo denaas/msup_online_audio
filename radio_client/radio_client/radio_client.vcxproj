@@ -118,12 +118,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\My Documents\GitHubVisualStudio\1\msup_online_audio\radio_client\radio_client\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Logycom\Documents\GitHub\msup_online_audio\radio_client\radio_client\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies />
-      <AdditionalLibraryDirectories>D:\My Documents\GitHubVisualStudio\1\msup_online_audio\radio_client\radio_client\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Logycom\Documents\GitHub\msup_online_audio\radio_client\radio_client\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

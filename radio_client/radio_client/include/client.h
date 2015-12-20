@@ -10,7 +10,7 @@
 
 using namespace System::Windows::Forms;
 
-#define BUF_LEN 1024
+#define BUF_LEN 1024 * 256
 
 using std::string;
 using std::endl;
