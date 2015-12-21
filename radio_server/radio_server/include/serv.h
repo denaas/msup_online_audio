@@ -9,8 +9,8 @@
 #include "WinDef.h"
 #include "wincrypt.h"
 
-//#include "md5.cpp"
-//#include "identification.cpp"
+#include "sha_256.h"
+#include "registr.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -192,11 +192,6 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 	/*
 	* Authentification procedure
 	*/
-
-	//identification first_pair;
-	//first_pair.login = md5(str);
-	//first_pair.password = md5("password2");
-	//first_pair.registration();
 
 	/*
 	 * Sending audio
