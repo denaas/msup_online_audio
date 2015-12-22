@@ -9,21 +9,16 @@ Project / Properties / Linker / Input / Additional Dependencies / advapi32.lib.
 */
 
 #include "client_app.h"
-
-#include <iostream>
 #include "windows.h"
 #include "WinDef.h"
 #include "wincrypt.h"
 
-
 #define BUFFER_SIZE 128
-using namespace std;
 
 using namespace System;
 using namespace System::Windows::Forms;
 
 [STAThread]	
-//int main(array<String^>^ argv)
 int main()
 {
 	WSADATA WsaData;
@@ -42,4 +37,6 @@ int main()
 	}
 	return 0;
 }
+
+
 

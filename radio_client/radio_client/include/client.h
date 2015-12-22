@@ -5,13 +5,20 @@
 #include <fstream>
 #include <winsock2.h> 
 #include <ws2tcpip.h>
+#include <conio.h>
 
+#include "bass.h"
+#include <msclr\marshal_cppstd.h>
+
+#include "windows.h"
+#include "WinDef.h"
+#include "wincrypt.h"
+
+#pragma comment(lib, "bass.lib")
 #pragma comment(lib, "ws2_32.lib")
+#define BUF_LEN 256 * 1024
 
 using namespace System::Windows::Forms;
-
-#define BUF_LEN 1024 * 256
-
 using std::string;
 using std::endl;
 using std::cout;

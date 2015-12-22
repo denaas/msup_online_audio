@@ -16,7 +16,7 @@
 
 #define BUF_LEN 1024
 #define BITRATE 256
-const long stream_pack_length = BITRATE * 1024;
+const long stream_pack_length = 1024 * BITRATE;
 
 using std::string;
 using std::endl;
@@ -233,7 +233,7 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 
 		pConn->Send(resstr);
 	}
-
+	pConn->Send("eof");
 	CryptDestroyKey(hKey);
 	if (hHash) CryptDestroyHash(hHash);
 }
