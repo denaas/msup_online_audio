@@ -196,44 +196,69 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 	/*
 	 * Sending audio
 	 */
-	ifstream in_audio_file("contents/3.wav", std::ios::binary);
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hfile;
 
-	if (!in_audio_file.is_open())
+	hfile = FindFirstFile(L"contents/*", &FindFileData);
+
+	if (hfile != INVALID_HANDLE_VALUE)
 	{
-		cout << "Error: Input Audio is not opened." << endl;
-		system("pause");
-		exit(-1);
-	}
-
-	string buffer;
-	char ch;
-	DWORD tmp = 0;
-
-	while (!in_audio_file.eof())
-	{
-		buffer = "";
-		for (int i = 0; i < stream_pack_length; ++i)
+		do
 		{
-			in_audio_file.get(ch);
-			buffer += ch;
-		}
-		char cstr[stream_pack_length];
-		for (int i = 0; i < stream_pack_length; ++i) {
-			cstr[i] = buffer[i];
-		}
+			
+			wstring ws(FindFileData.cFileName);
+			std::string fname(ws.begin(), ws.end());
 
-		tmp = stream_pack_length;
-		if (!CryptEncrypt(hKey, 0, tmp <= stream_pack_length, 0, (BYTE *)cstr, &tmp, stream_pack_length))
-			throw string("ErrorEncrypt"); 
+			std::cout << fname << std::endl;
 
-		string resstr = "";
-		for (int i = 0; i < stream_pack_length; ++i) {
-			resstr += cstr[i];
-		}
+			if (strstr(fname.c_str(),".wav")) 
+			{
+				ifstream in_audio_file("contents/" + fname, std::ios::binary);
 
-		pConn->Send(resstr);
+				if (!in_audio_file.is_open())
+				{
+					cout << "Error: Input Audio is not opened." << endl;
+					system("pause");
+					exit(-1);
+				}
+
+				string buffer;
+				char ch;
+				DWORD tmp = 0;
+
+				while (!in_audio_file.eof())
+				{
+					buffer = "";
+					for (int i = 0; i < stream_pack_length; ++i)
+					{
+						in_audio_file.get(ch);
+						buffer += ch;
+					}
+					char cstr[stream_pack_length];
+					for (int i = 0; i < stream_pack_length; ++i) {
+						cstr[i] = buffer[i];
+					}
+
+					tmp = stream_pack_length;
+					if (!CryptEncrypt(hKey, 0, tmp <= stream_pack_length, 0, (BYTE *)cstr, &tmp, stream_pack_length))
+						throw string("ErrorEncrypt");
+
+					string resstr = "";
+					for (int i = 0; i < stream_pack_length; ++i) {
+						resstr += cstr[i];
+					}
+
+					pConn->Send(resstr);
+				}
+			}
+		} while (FindNextFile(hfile, &FindFileData) != 0);
+
+		pConn->Send("eof");
+		FindClose(hfile);
 	}
-	pConn->Send("eof");
+
+
+	
 	CryptDestroyKey(hKey);
 	if (hHash) CryptDestroyHash(hHash);
 }
