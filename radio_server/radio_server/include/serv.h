@@ -168,6 +168,44 @@ void ServerSocket::Listen(int back_log)
 		throw string("call listen");
 }
 
+HCRYPTKEY KeyGeneraton(BaseSocket* pConn, HCRYPTPROV hProv) {
+	//1st
+	//получаем public key клиента
+	HCRYPTKEY hPubKey;
+	string str = "";
+	str = pConn->Recieve();
+	//HCRYPTKEY hPubKey;
+	DWORD dwBlobLen = str.length();  //длина полученного KeyBlob
+	LPBYTE KeyBlob = (BYTE *)malloc(dwBlobLen);
+	//str -> KeyBlob
+	for (int i = 0; i < dwBlobLen; i++) {
+		KeyBlob[i] = str[i];
+	}
+	//KeyBlob -> hPubKey
+	CryptImportKey(hProv, KeyBlob, dwBlobLen, 0, 0, &hPubKey);
+	cout << "1 step over" << endl;
+	//2nd 
+	//генерируем сессионный ключ
+	HCRYPTKEY hKey;
+	CryptGenKey(hProv, CALG_RC4, CRYPT_EXPORTABLE, &hKey);
+	CryptExportKey(hKey, hPubKey, PRIVATEKEYBLOB, 0, NULL, &dwBlobLen);
+	LPBYTE SecKeyBlob = (BYTE *)malloc(dwBlobLen);
+	// hKey -> KeyBlob
+	CryptExportKey(hKey, hPubKey, PRIVATEKEYBLOB, 0, SecKeyBlob, &dwBlobLen);
+	// KeyBlob -> str
+	str = "";
+	for (int i = 0; i < dwBlobLen; i++) {
+		str += SecKeyBlob[i];
+	}
+	pConn->Send(str);
+	cout << "2 step over" << endl;
+
+	//3
+	//Destroy hPubKey
+	return hKey;
+}
+
+
 void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 {
 	cout << "Get request:";

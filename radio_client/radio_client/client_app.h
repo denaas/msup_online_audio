@@ -148,6 +148,45 @@ namespace radio_client {
 
 		}
 #pragma endregion
+		HCRYPTKEY KeyGeneration1(ClientSocket *sock, HCRYPTPROV hProv) {
+			//NEW KEY GENERATION
+
+			//1st
+			HCRYPTKEY hEphKey;
+			CryptGenKey(hProv, CALG_RSA_KEYX, CRYPT_EXPORTABLE, &hEphKey);
+			DWORD keylen;
+			CryptExportKey(hEphKey, NULL, PUBLICKEYBLOB, 0, NULL, &keylen);
+			LPBYTE KeyBlob;
+			KeyBlob = (BYTE *)malloc(keylen);
+			CryptExportKey(hEphKey, NULL, PUBLICKEYBLOB, 0, KeyBlob, &keylen);
+			//KeyBlob -> trans
+			string trans = "";
+			for (int i = 0; i < keylen; i++) {
+				trans += KeyBlob[i];
+			}
+			sock->Send(trans);
+
+			//2nd
+			HCRYPTKEY SecKey;
+			trans = "";
+			trans = sock->Recieve();
+
+			DWORD dwBlobLen = trans.length(); //длина полученного SecKeyBlob
+			BYTE *SecKeyBlob = (BYTE *)malloc(dwBlobLen);
+			// trans -> SecKeyBlob
+			for (int i = 0; i < dwBlobLen; i++) {
+				SecKeyBlob[i] = trans[i];
+			}
+			// SecKeyBlob -> SecKey
+			CryptImportKey(hProv, SecKeyBlob, dwBlobLen, hEphKey, 0, &SecKey);
+
+
+			//3
+			//Destroy hEphKey
+
+			return SecKey;
+
+		}
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
 		/*
