@@ -1,7 +1,63 @@
 #pragma once
 #include "client_interface.h"
 
+CRITICAL_SECTION CS;
+
 void CreateStream();
+
+DWORD WINAPI ThreadFunc(LPVOID param)
+{
+	//EnterCriticalSection(&CS);
+
+	ClientSocket sock(TCP);
+	sock.Connect();
+	sock.Send("SYN");
+
+	//Initializing CSP
+	HCRYPTPROV hProv;
+	CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, 0);
+
+	//key generation
+	HCRYPTHASH hHash = NULL;
+	char* password_sample = "12345";
+	if (!CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash))
+		cout << "Error: create hash" << endl;
+	if (!CryptHashData(hHash, (BYTE *)password_sample, (DWORD)strlen(password_sample), 0))
+		cout << "Error: password hash" << endl;
+	HCRYPTKEY hKey;
+	if (!CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey))
+		cout << "Error: key create" << endl;
+	//end of key generation
+
+	string buffer = "";
+	while ((buffer = sock.Recieve()) != "eof")
+	{
+		char * cstr = new char[buffer.length()];
+
+		for (int i = 0; i < buffer.length(); ++i)
+			cstr[i] = buffer[i];
+
+		DWORD tmp = buffer.length();
+
+		if (!CryptDecrypt(hKey, 0, tmp <= buffer.length(), 0, (BYTE *)cstr, &tmp))
+			cout << "ErrorDecrypt" << endl;
+
+		if (BASS_StreamPutData(stream, (void *)cstr, (DWORD)buffer.length()) == -1)
+			std::cout << "BASS_StreamPutData() is failse with " << BASS_ErrorGetCode() << std::endl;
+
+		delete[] cstr;
+	}
+
+	//Closing CSP
+	CryptDestroyKey(hKey);
+	if (hHash) CryptDestroyHash(hHash);
+	CryptReleaseContext(hProv, 0);
+
+	//LeaveCriticalSection(&CS);
+	return 0;
+}
+
+
 
 // *******************************************************************
 // *******************************************************************
@@ -204,51 +260,26 @@ namespace radio_client {
 
 		// if authorization has been successful, then ...
 
-		ClientSocket sock(TCP);
-		sock.Connect();
-		sock.Send("SYN");
 
 		// **************************************************************
 		CreateStream();
 
+		DWORD dwThreadId, dwThrdParam = 1;
+		HANDLE hThread;
 
-		//Initializing CSP
-		HCRYPTPROV hProv;
-		CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, 0);
+		//InitializeCriticalSection(&CS);
 
-		//key generation
-		HCRYPTHASH hHash = NULL;
-		char* password_sample = "12345";
-		if (!CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash))
-			cout << "Error: create hash" << endl;
-		if (!CryptHashData(hHash, (BYTE *) password_sample, (DWORD) strlen(password_sample), 0))
-			cout << "Error: password hash" << endl;
-		HCRYPTKEY hKey;
-		if (!CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey))
-			cout << "Error: key create" << endl;
-		//end of key generation
-		string buffer = "";
-		while ((buffer = sock.Recieve()) != "eof")
+		hThread = CreateThread(NULL, 0, ThreadFunc, &dwThrdParam, 0, &dwThreadId); 
+
+		if (hThread == NULL)
 		{
-			char * cstr = new char[buffer.length()];
-			for (int i = 0; i < buffer.length(); ++i)
-				cstr[i] = buffer[i];
-
-			DWORD tmp = buffer.length();
-
-			if (!CryptDecrypt(hKey, 0, tmp <= buffer.length(), 0, (BYTE *)cstr, &tmp))
-				cout << "ErrorDecrypt" << endl;
-
-			if (BASS_StreamPutData(stream, (void *)cstr, (DWORD)buffer.length()) == -1)
-				std::cout << "BASS_StreamPutData() is failse with " << BASS_ErrorGetCode() << std::endl;
-
-			delete[] cstr;
+			MessageBox::Show("CreateThread failed.", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
 		}
+		else
+			CloseHandle(hThread);
 
-		//Closing CSP
-		CryptDestroyKey(hKey);
-		if (hHash) CryptDestroyHash(hHash);
-		CryptReleaseContext(hProv, 0);
+		//DeleteCriticalSection(&CS);
 
 		client_interface^ form = gcnew client_interface;
 		this->Hide();
