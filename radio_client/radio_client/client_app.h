@@ -60,9 +60,9 @@ DWORD WINAPI ThreadFunc(LPVOID param)
 		if (x.init_ofb_14(kSeltTestGost14MasterKeyData, ctx, kBlockLen14, kSeltTestGost14OfbSV, svLen, 0, 0))
 		throw string("ErrorEncrypt");
 
-		if (x.crypt_ofb(ctx,(unsigned char*) cstr, outText, sizeof(cstr) / sizeof(cstr[0])))
+		if (x.decrypt_ofb(ctx,(unsigned char*) cstr, outText, sizeof(cstr) / sizeof(cstr[0])))
 		throw string("ErrorEncrypt");
-
+		cstr = (char*)outText;
 		x.free_ofb(ctx);*/
 
 		if (BASS_StreamPutData(stream, (void *)cstr, (DWORD)buffer.length()) == -1)
