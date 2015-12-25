@@ -16,7 +16,7 @@
 
 #pragma comment(lib, "bass.lib")
 #pragma comment(lib, "ws2_32.lib")
-#define BUF_LEN 256 * 1024
+#define BUF_LEN 1024 * 256
 
 using namespace System::Windows::Forms;
 using std::string;

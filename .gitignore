@@ -214,3 +214,4 @@ ModelManifest.xml
 radio_client/radio_client/x64/Debug/radio_client.log
 radio_client/radio_client/x64/Debug/radio_client.tlog/CL.command.1.tlog
 radio_client/radio_client/x64/Debug/vc140.pdb
+radio_server/radio_server/client.txt

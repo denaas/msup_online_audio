@@ -120,9 +120,7 @@ namespace radio_client {
 		{
 			flag = true;
 			this->button1->Text = L"Pause";
-
 			pos = BASS_StreamGetFilePosition(stream, BASS_FILEPOS_BUFFER);
-
 			BASS_ChannelSetPosition(stream, pos, BASS_POS_BYTE);
 			BASS_ChannelPlay(stream, FALSE);
 		}
@@ -137,7 +135,7 @@ namespace radio_client {
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
 		BASS_Free();
-		Close();
+		exit(EXIT_SUCCESS);
 	}
 private: System::Void trackBar1_Scroll(System::Object^  sender, System::EventArgs^  e) {
 	BASS_SetVolume((float) (this->trackBar1->Value) / this->trackBar1->Maximum);

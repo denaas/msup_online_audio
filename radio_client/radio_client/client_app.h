@@ -7,8 +7,6 @@ void CreateStream();
 
 DWORD WINAPI ThreadFunc(LPVOID param)
 {
-	//EnterCriticalSection(&CS);
-
 	ClientSocket sock(TCP);
 	sock.Connect();
 	sock.Send("SYN");
@@ -75,8 +73,6 @@ DWORD WINAPI ThreadFunc(LPVOID param)
 	CryptDestroyKey(hKey);
 	if (hHash) CryptDestroyHash(hHash);
 	CryptReleaseContext(hProv, 0);
-
-	//LeaveCriticalSection(&CS);
 	return 0;
 }
 
@@ -127,6 +123,7 @@ namespace radio_client {
 	private: System::Windows::Forms::Label^  label2;
 	private: System::Windows::Forms::Button^  button1;
 	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Label^  label3;
 
 
 	protected:
@@ -151,6 +148,7 @@ namespace radio_client {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
 			// textBox1
@@ -207,12 +205,22 @@ namespace radio_client {
 			this->button2->TabIndex = 5;
 			this->button2->Text = L"Sign up";
 			this->button2->UseVisualStyleBackColor = true;
+			this->button2->Click += gcnew System::EventHandler(this, &client_app::button2_Click);
+			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(16, 196);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(0, 20);
+			this->label3->TabIndex = 6;
 			// 
 			// client_app
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(339, 208);
+			this->ClientSize = System::Drawing::Size(339, 230);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->label2);
@@ -264,22 +272,32 @@ namespace radio_client {
 			//Destroy hEphKey
 
 			return SecKey;
-
 		}
+
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		/*
 		System::String^ managed_str1 = textBox1->Text;
-		std::string unmanaged_str1 = msclr::interop::marshal_as<std::string>(managed_str1);
-		System::String^ managed_str2 = textBox2->Text;
-		std::string unmanaged_str2 = msclr::interop::marshal_as<std::string>(managed_str2);
+		std::string id_name = msclr::interop::marshal_as<std::string>(managed_str1);
+		if (id_name == "")
+		{
+			MessageBox::Show("Enter the password/Unallowed password", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
+		}
 
-		std::string msg = unmanaged_str1 + "/" + unmanaged_str2;
+		System::String^ managed_str2 = textBox2->Text;
+		std::string password = msclr::interop::marshal_as<std::string>(managed_str2);
+		if (password == "password" && password == "")
+		{
+			MessageBox::Show("Enter the password/Unallowed password", "Error", MessageBoxButtons::OK);
+			exit(EXIT_FAILURE);
+		}
+
+		ClientSocket sock(TCP);
+		std::string msg = id_name + "/" + password;
 		sock.Send(msg);
 
-		string recv_msg = sock.Recieve();
-		String ^ recv_msg_sys = gcnew String(recv_msg.c_str());
-		*/
+		string answer_str = sock.Recieve();
+
 
 		// if authorization has been successful, then ...
 
@@ -289,8 +307,6 @@ namespace radio_client {
 
 		DWORD dwThreadId, dwThrdParam = 1;
 		HANDLE hThread;
-
-		//InitializeCriticalSection(&CS);
 
 		hThread = CreateThread(NULL, 0, ThreadFunc, &dwThrdParam, 0, &dwThreadId); 
 
@@ -302,11 +318,65 @@ namespace radio_client {
 		else
 			CloseHandle(hThread);
 
-		//DeleteCriticalSection(&CS);
-
 		client_interface^ form = gcnew client_interface;
 		this->Hide();
 		form->Show();
+	}
+	static bool flag = false;
+	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e)
+	{
+		ClientSocket sock(TCP);
+		System::String^ managed_str1;
+		System::String^ managed_str2;
+		std::string id_name, password;
+
+		if (!flag)
+		{
+			label3->Text = L"Please enter the login and password.";
+			button2->Text = L"Ready";
+			button1->Enabled = false;
+			flag = true;
+		}
+		else
+		{
+			managed_str1 = textBox1->Text;
+			id_name = msclr::interop::marshal_as<std::string>(managed_str1);
+			managed_str2 = textBox2->Text;
+			password = msclr::interop::marshal_as<std::string>(managed_str2);
+
+			
+			if (id_name == "")
+			{
+				label3->Text = L"Login is empty. Please try again.";
+				return;
+			}
+
+			if (password == "" || password == "password")
+			{
+				label3->Text = L"Enter the password/Unallowed password.";
+				return;
+			}
+
+			std::string msg = "SIGNUP " + id_name + " " + password;
+			sock.Connect();
+			sock.Send(msg);
+
+			std::string answer_str = sock.Recieve();
+
+			if (answer_str == "FAILED")
+			{
+				MessageBox::Show("Please try again.", "Registration Error", MessageBoxButtons::OK);
+				return;
+			}
+			else
+			{
+				label3->Text = L"Registration completed successfully.";
+				button2->Text = L"Sign Up";
+				button1->Enabled = true;
+				flag = false;
+				return;
+			}
+		}
 	}
 };
 }

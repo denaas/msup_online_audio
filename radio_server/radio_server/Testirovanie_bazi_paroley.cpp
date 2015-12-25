@@ -1,4 +1,4 @@
-//podkluchit k osnovnoy programme
+//podkluchit k osnovnoy programme 
 #include <iostream>
 #include <cstdio>
 #include <cstddef>
