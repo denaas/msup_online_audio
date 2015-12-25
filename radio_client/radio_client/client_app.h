@@ -360,6 +360,8 @@ namespace radio_client {
 
 		if (!flag)
 		{
+			textBox1->Text = L"";
+			textBox2->Text = L"";
 			label3->Text = L"Please enter the login and password.";
 			button2->Text = L"Ready";
 			button1->Enabled = false;

@@ -208,7 +208,7 @@ HCRYPTKEY KeyGeneraton(BaseSocket* pConn, HCRYPTPROV hProv) {
 
 void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 {
-	cout << "Get request.";
+	cout << "Get request." << endl;
 	string str = pConn->Recieve();
 
 	identification user_id;
