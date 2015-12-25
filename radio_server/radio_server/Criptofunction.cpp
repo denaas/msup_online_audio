@@ -52,10 +52,11 @@ int ExpandKey(unsigned char* masterKey, unsigned char* keys, printout_byte_array
 	unsigned char temp2[16];
 	unsigned char j, i;
 
-	using namespace std;
+
 	if (!masterKey || !keys)
 	{
-		cout << "ExpandKey: internal error!" << endl;
+		if (print)
+			print("ExpandKey: internal error!", 0, 0);
 		return -1;
 	}
 
@@ -87,10 +88,11 @@ int ExpandKey(unsigned char* masterKey, unsigned char* keys, printout_byte_array
 		memcpy(keys + (j * 2 + 2) * 16, temp1, 16);
 		memcpy(keys + (j * 2 + 3) * 16, temp2, 16);
 
-
-		cout << "ExpandKey: output key: " << keys + (j * 2 + 2) * 16, 16;
-		cout << "ExpandKey: output key: " << keys + (j * 2 + 3) * 16, 16;
-
+		if (print)
+		{
+			print("ExpandKey: output key: ", keys + (j * 2 + 2) * 16, 16);
+			print("ExpandKey: output key: ", keys + (j * 2 + 3) * 16, 16);
+		}
 	}
 
 
