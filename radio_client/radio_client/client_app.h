@@ -1,6 +1,6 @@
 #pragma once
 #include "client_interface.h"
-
+#include "Criptofunction.h"
 CRITICAL_SECTION CS;
 
 void CreateStream();
