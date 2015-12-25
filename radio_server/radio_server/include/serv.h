@@ -9,16 +9,14 @@
 #include "WinDef.h"
 #include "wincrypt.h"
 
-//#include "md5.cpp"
-//#include "identification.cpp"
-
-#define BUFFER_SIZE 128
+#include "sha_256.h"
+#include "registr.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
 #define BUF_LEN 1024
 #define BITRATE 256
-const long stream_pack_length = BITRATE * 1024;
+const long stream_pack_length = 1024 * BITRATE;
 
 using std::string;
 using std::endl;
@@ -170,6 +168,44 @@ void ServerSocket::Listen(int back_log)
 		throw string("call listen");
 }
 
+HCRYPTKEY KeyGeneraton(BaseSocket* pConn, HCRYPTPROV hProv) {
+	//1st
+	//получаем public key клиента
+	HCRYPTKEY hPubKey;
+	string str = "";
+	str = pConn->Recieve();
+	//HCRYPTKEY hPubKey;
+	DWORD dwBlobLen = str.length();  //длина полученного KeyBlob
+	LPBYTE KeyBlob = (BYTE *)malloc(dwBlobLen);
+	//str -> KeyBlob
+	for (int i = 0; i < dwBlobLen; i++) {
+		KeyBlob[i] = str[i];
+	}
+	//KeyBlob -> hPubKey
+	CryptImportKey(hProv, KeyBlob, dwBlobLen, 0, 0, &hPubKey);
+	cout << "1 step over" << endl;
+	//2nd 
+	//генерируем сессионный ключ
+	HCRYPTKEY hKey;
+	CryptGenKey(hProv, CALG_RC4, CRYPT_EXPORTABLE, &hKey);
+	CryptExportKey(hKey, hPubKey, PRIVATEKEYBLOB, 0, NULL, &dwBlobLen);
+	LPBYTE SecKeyBlob = (BYTE *)malloc(dwBlobLen);
+	// hKey -> KeyBlob
+	CryptExportKey(hKey, hPubKey, PRIVATEKEYBLOB, 0, SecKeyBlob, &dwBlobLen);
+	// KeyBlob -> str
+	str = "";
+	for (int i = 0; i < dwBlobLen; i++) {
+		str += SecKeyBlob[i];
+	}
+	pConn->Send(str);
+	cout << "2 step over" << endl;
+
+	//3
+	//Destroy hPubKey
+	return hKey;
+}
+
+
 void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 {
 	cout << "Get request:";
@@ -179,40 +215,88 @@ void ServerSocket::OnAccept(BaseSocket* pConn, HCRYPTPROV hProv)
 	/*
 	* Creating a new secure connection
 	*/
-
+	//key generation
+	HCRYPTHASH hHash = NULL;
+	char* password_sample = "12345";
+	if (!CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash))
+		throw string("CreateHash");
+	if (!CryptHashData(hHash, (BYTE*)password_sample, (DWORD)strlen(password_sample), 0))
+		throw string("CryptHashData");
+	HCRYPTKEY hKey;
+	if (!CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey))
+		throw string("DeriveKey");
+	//end of key generation
 
 	/*
 	* Authentification procedure
 	*/
 
-	//identification first_pair;
-	//first_pair.login = md5(str);
-	//first_pair.password = md5("password2");
-	//first_pair.registration();
-
 	/*
 	 * Sending audio
 	 */
-	ifstream in_audio_file("contents/3.wav", std::ios::binary);
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hfile;
 
-	if (!in_audio_file.is_open())
+	hfile = FindFirstFile(L"contents/*", &FindFileData);
+
+	if (hfile != INVALID_HANDLE_VALUE)
 	{
-		cout << "Error: Input Audio is not opened." << endl;
-		system("pause");
-		exit(-1);
-	}
-
-	std::string buffer;
-	char ch;
-
-	while (!in_audio_file.eof())
-	{
-		buffer = "";
-		for (int i = 0; i < stream_pack_length; ++i)
+		do
 		{
-			in_audio_file.get(ch);
-			buffer += ch;
-		}
-		pConn->Send(buffer);
+			
+			wstring ws(FindFileData.cFileName);
+			std::string fname(ws.begin(), ws.end());
+
+			std::cout << fname << std::endl;
+
+			if (strstr(fname.c_str(),".wav")) 
+			{
+				ifstream in_audio_file("contents/" + fname, std::ios::binary);
+
+				if (!in_audio_file.is_open())
+				{
+					cout << "Error: Input Audio is not opened." << endl;
+					system("pause");
+					exit(-1);
+				}
+
+				string buffer;
+				char ch;
+				DWORD tmp = 0;
+
+				while (!in_audio_file.eof())
+				{
+					buffer = "";
+					for (int i = 0; i < stream_pack_length; ++i)
+					{
+						in_audio_file.get(ch);
+						buffer += ch;
+					}
+					char cstr[stream_pack_length];
+					for (int i = 0; i < stream_pack_length; ++i) {
+						cstr[i] = buffer[i];
+					}
+
+					tmp = stream_pack_length;
+					if (!CryptEncrypt(hKey, 0, tmp <= stream_pack_length, 0, (BYTE *)cstr, &tmp, stream_pack_length))
+						throw string("ErrorEncrypt");
+
+					string resstr = "";
+					for (int i = 0; i < stream_pack_length; ++i) {
+						resstr += cstr[i];
+					}
+
+					pConn->Send(resstr);
+				}
+			}
+		} while (FindNextFile(hfile, &FindFileData) != 0);
+
+		pConn->Send("eof");
+		FindClose(hfile);
 	}
+
+
+	
+	CryptDestroyKey(hKey);
+	if (hHash) CryptDestroyHash(hHash);
 }

@@ -1,12 +1,6 @@
 #pragma once
-
-#include <conio.h>
-#include <winsock2.h> 
-#include "bass.h"
 #include "client.h"
-#include <msclr\marshal_cppstd.h>
-
-#pragma comment(lib, "bass.lib")
+#include "client_interface.h"
 
 static HSTREAM stream;
 
@@ -46,7 +40,8 @@ namespace radio_client {
 	private: System::Windows::Forms::Button^  button1;
 	protected:
 	private: System::Windows::Forms::Button^  button2;
-	private: System::Windows::Forms::Timer^  timer1;
+	private: System::Windows::Forms::TrackBar^  trackBar1;
+
 	private: System::ComponentModel::IContainer^  components;
 
 
@@ -63,76 +58,89 @@ namespace radio_client {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->components = (gcnew System::ComponentModel::Container());
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(client_interface::typeid));
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
-			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
+			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(50, 40);
-			this->button1->Margin = System::Windows::Forms::Padding(2);
+			this->button1->Location = System::Drawing::Point(12, 12);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(83, 29);
+			this->button1->Size = System::Drawing::Size(124, 45);
 			this->button1->TabIndex = 0;
-			this->button1->Text = L"Play/Stop";
+			this->button1->Text = L"Play";
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &client_interface::button1_Click);
 			this->button1->StyleChanged += gcnew System::EventHandler(this, &client_interface::button1_Click);
 			// 
 			// button2
 			// 
-			this->button2->Location = System::Drawing::Point(153, 40);
-			this->button2->Margin = System::Windows::Forms::Padding(2);
+			this->button2->Location = System::Drawing::Point(142, 12);
 			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(87, 29);
+			this->button2->Size = System::Drawing::Size(130, 45);
 			this->button2->TabIndex = 1;
-			this->button2->Text = L"Next";
+			this->button2->Text = L"Sign Out";
 			this->button2->UseVisualStyleBackColor = true;
 			this->button2->Click += gcnew System::EventHandler(this, &client_interface::button2_Click);
 			// 
+			// trackBar1
+			// 
+			this->trackBar1->Location = System::Drawing::Point(288, 12);
+			this->trackBar1->Name = L"trackBar1";
+			this->trackBar1->Size = System::Drawing::Size(143, 69);
+			this->trackBar1->TabIndex = 2;
+			this->trackBar1->Value = 5;
+			this->trackBar1->Scroll += gcnew System::EventHandler(this, &client_interface::trackBar1_Scroll);
+			// 
 			// client_interface
 			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
+			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(289, 121);
+			this->ClientSize = System::Drawing::Size(455, 81);
+			this->Controls->Add(this->trackBar1);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
-			this->Margin = System::Windows::Forms::Padding(2);
 			this->Name = L"client_interface";
 			this->Text = L"Music Online";
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->EndInit();
 			this->ResumeLayout(false);
+			this->PerformLayout();
 
 		}
 #pragma endregion
+	static bool flag = false;
+	static QWORD pos = 0;
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
-	{
-		ClientSocket sock(TCP);
-		sock.Connect();
-		sock.Send("give me some music");
-		
-		stream = BASS_StreamCreate(44100, 2, 0, STREAMPROC_PUSH, NULL);
-		if (!stream)
+	{		
+		if (!flag)
 		{
-			MessageBox::Show("BASS_StreamCreate() is failed.", "Error", MessageBoxButtons::OK);
-			exit(EXIT_FAILURE);
-		}
+			flag = true;
+			this->button1->Text = L"Pause";
 
-		BASS_ChannelPlay(stream, FALSE);
-		while (BASS_ChannelIsActive(stream) == BASS_ACTIVE_STALLED || BASS_ChannelIsActive(stream) == BASS_ACTIVE_PLAYING)
+			pos = BASS_StreamGetFilePosition(stream, BASS_FILEPOS_BUFFER);
+
+			BASS_ChannelSetPosition(stream, pos, BASS_POS_BYTE);
+			BASS_ChannelPlay(stream, FALSE);
+		}
+		else
 		{
-			string buffer = sock.Recieve();
-			BASS_StreamPutData(stream, (void *) buffer.c_str(), (DWORD) buffer.length());
+			flag = false;
+			this->button1->Text = L"Play";
+			BASS_ChannelPause(stream);
 		}
 	}
 	
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
-		BASS_ChannelStop(stream);
-		BASS_StreamFree(stream);
+		BASS_Free();
+		Close();
 	}
+private: System::Void trackBar1_Scroll(System::Object^  sender, System::EventArgs^  e) {
+	BASS_SetVolume((float) (this->trackBar1->Value) / this->trackBar1->Maximum);
+}
 };
 }

@@ -1,13 +1,14 @@
 #pragma once
 #include "client_interface.h"
-#include <iostream>
 
+void CreateStream();
+
+// *******************************************************************
+// *******************************************************************
 
 using namespace System::Windows::Forms;
-using namespace std;
 
 namespace radio_client {
-
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -47,7 +48,7 @@ namespace radio_client {
 	private: System::Windows::Forms::Label^  label2;
 	private: System::Windows::Forms::Button^  button1;
 	private: System::Windows::Forms::Button^  button2;
-	private: System::Windows::Forms::Label^  label3;
+
 
 	protected:
 
@@ -71,7 +72,6 @@ namespace radio_client {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
-			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
 			// textBox1
@@ -129,21 +129,11 @@ namespace radio_client {
 			this->button2->Text = L"Sign up";
 			this->button2->UseVisualStyleBackColor = true;
 			// 
-			// label3
-			// 
-			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(12, 214);
-			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(51, 20);
-			this->label3->TabIndex = 6;
-			this->label3->Text = L"label3";
-			// 
 			// client_app
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(9, 20);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(339, 268);
-			this->Controls->Add(this->label3);
+			this->ClientSize = System::Drawing::Size(339, 208);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->label2);
@@ -158,6 +148,45 @@ namespace radio_client {
 
 		}
 #pragma endregion
+		HCRYPTKEY KeyGeneration1(ClientSocket *sock, HCRYPTPROV hProv) {
+			//NEW KEY GENERATION
+
+			//1st
+			HCRYPTKEY hEphKey;
+			CryptGenKey(hProv, CALG_RSA_KEYX, CRYPT_EXPORTABLE, &hEphKey);
+			DWORD keylen;
+			CryptExportKey(hEphKey, NULL, PUBLICKEYBLOB, 0, NULL, &keylen);
+			LPBYTE KeyBlob;
+			KeyBlob = (BYTE *)malloc(keylen);
+			CryptExportKey(hEphKey, NULL, PUBLICKEYBLOB, 0, KeyBlob, &keylen);
+			//KeyBlob -> trans
+			string trans = "";
+			for (int i = 0; i < keylen; i++) {
+				trans += KeyBlob[i];
+			}
+			sock->Send(trans);
+
+			//2nd
+			HCRYPTKEY SecKey;
+			trans = "";
+			trans = sock->Recieve();
+
+			DWORD dwBlobLen = trans.length(); //длина полученного SecKeyBlob
+			BYTE *SecKeyBlob = (BYTE *)malloc(dwBlobLen);
+			// trans -> SecKeyBlob
+			for (int i = 0; i < dwBlobLen; i++) {
+				SecKeyBlob[i] = trans[i];
+			}
+			// SecKeyBlob -> SecKey
+			CryptImportKey(hProv, SecKeyBlob, dwBlobLen, hEphKey, 0, &SecKey);
+
+
+			//3
+			//Destroy hEphKey
+
+			return SecKey;
+
+		}
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) 
 	{
 		/*
@@ -172,15 +201,54 @@ namespace radio_client {
 		string recv_msg = sock.Recieve();
 		String ^ recv_msg_sys = gcnew String(recv_msg.c_str());
 		*/
-		//Decrypt
 
-		//label3->Text = ...;
+		// if authorization has been successful, then ...
 
-		if (!BASS_Init(-1, 44100, BASS_DEVICE_3D, 0, NULL))
+		ClientSocket sock(TCP);
+		sock.Connect();
+		sock.Send("SYN");
+
+		// **************************************************************
+		CreateStream();
+
+
+		//Initializing CSP
+		HCRYPTPROV hProv;
+		CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, 0);
+
+		//key generation
+		HCRYPTHASH hHash = NULL;
+		char* password_sample = "12345";
+		if (!CryptCreateHash(hProv, CALG_SHA, 0, 0, &hHash))
+			cout << "Error: create hash" << endl;
+		if (!CryptHashData(hHash, (BYTE *) password_sample, (DWORD) strlen(password_sample), 0))
+			cout << "Error: password hash" << endl;
+		HCRYPTKEY hKey;
+		if (!CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey))
+			cout << "Error: key create" << endl;
+		//end of key generation
+		string buffer = "";
+		while ((buffer = sock.Recieve()) != "eof")
 		{
-			MessageBox::Show("BASS_Init() is failed.", "Error", MessageBoxButtons::OK);
-			exit(EXIT_FAILURE);
+			char * cstr = new char[buffer.length()];
+			for (int i = 0; i < buffer.length(); ++i)
+				cstr[i] = buffer[i];
+
+			DWORD tmp = buffer.length();
+
+			if (!CryptDecrypt(hKey, 0, tmp <= buffer.length(), 0, (BYTE *)cstr, &tmp))
+				cout << "ErrorDecrypt" << endl;
+
+			if (BASS_StreamPutData(stream, (void *)cstr, (DWORD)buffer.length()) == -1)
+				std::cout << "BASS_StreamPutData() is failse with " << BASS_ErrorGetCode() << std::endl;
+
+			delete[] cstr;
 		}
+
+		//Closing CSP
+		CryptDestroyKey(hKey);
+		if (hHash) CryptDestroyHash(hHash);
+		CryptReleaseContext(hProv, 0);
 
 		client_interface^ form = gcnew client_interface;
 		this->Hide();
@@ -189,3 +257,19 @@ namespace radio_client {
 };
 }
 
+void CreateStream()
+{
+	if (!BASS_Init(-1, 44100, BASS_DEVICE_3D, 0, NULL))
+	{
+		MessageBox::Show("BASS_Init() is failed.", "Error", MessageBoxButtons::OK);
+		exit(EXIT_FAILURE);
+	}
+
+	stream = BASS_StreamCreate(44100, 2, 0, STREAMPROC_PUSH, NULL);
+
+	if (!stream)
+	{
+		MessageBox::Show("BASS_StreamCreate() is failed.", "Error", MessageBoxButtons::OK);
+		exit(EXIT_FAILURE);
+	}
+}
