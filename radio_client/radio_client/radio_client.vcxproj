@@ -147,6 +147,8 @@
     <ClCompile Include="client.cpp" />
     <ClCompile Include="client_app.cpp" />
     <ClCompile Include="client_interface.cpp" />
+    <ClCompile Include="Criptofunction.cpp" />
+    <ClCompile Include="kz.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client_app.h">
@@ -155,8 +157,11 @@
     <ClInclude Include="client_interface.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Criptofunction.h" />
     <ClInclude Include="include\bass.h" />
     <ClInclude Include="include\client.h" />
+    <ClInclude Include="kz.h" />
+    <ClInclude Include="table.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="client_app.resx">

@@ -19,7 +19,7 @@ using namespace std;
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "27015"
-
+/*
 int __cdecl main(void)
 {
 	WSADATA wsaData;
@@ -140,7 +140,7 @@ int __cdecl main(void)
 
 	return 0;
 }
-
+*/
 
 int main()
 {
